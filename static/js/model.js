@@ -70,7 +70,7 @@
 
   function tuning(m) {
     document.getElementById("tuning-explain").textContent =
-      `Optuna tried ${m.trials_per_horizon} settings for each day ahead, always starting from CatBoost's own defaults (trial 0), so tuning could never make things worse. Weak trials were stopped early to save time.`;
+      `Optuna tried ${m.trials_per_horizon} settings per day ahead, starting from CatBoost's defaults, so it could never get worse. Weak trials were stopped early.`;
     const table = document.createElement("table");
     const head = table.createTHead().insertRow();
     ["", ...DAYS].forEach((t) => { const th = document.createElement("th"); th.textContent = t; head.appendChild(th); });

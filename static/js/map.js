@@ -97,10 +97,7 @@
         g.select(".site-temp").text(`${UB.num(days.temp[d.id][i], 0)}°`);
       });
     }
-    const ub = days.anomaly.ulaanbaatar[i];
     document.getElementById("map-date").textContent = fmtDate(i);
-    document.getElementById("map-sub").textContent =
-      `Ulaanbaatar ${UB.num(days.temp.ulaanbaatar[i])}°, ${describe(ub)}`;
     document.getElementById("map-slider").value = toValue(i);
   }
 

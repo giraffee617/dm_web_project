@@ -398,3 +398,38 @@ section:nth-of-type(3n) .flicker { animation-duration: 13s; animation-delay: -7s
 .split-key span { display: inline-flex; align-items: center; gap: 8px; }
 .split-key i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .split-key b { color: var(--text); font-weight: 500; }
+
+/* ---------- Key points (short lists instead of long paragraphs) ---------- */
+.points { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; max-width: 62ch; }
+.points li { color: var(--text-2); font-size: 16px; padding-left: 18px; position: relative; line-height: 1.45; }
+.points li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 6px; height: 6px; border-radius: 50%; background: var(--text-2); opacity: 0.7; }
+.story p + p { margin-top: 6px; }
+
+/* Jumping to a section from the menu: keep its heading below the sticky menu bar. */
+[id] { scroll-margin-top: 16px; }
+
+/* ---------- Menu: sub-sections on hover (computers only) ---------- */
+.nav-item { position: relative; }
+.nav-menu { display: none; }
+@media (min-width: 821px) {
+  .nav-links { overflow: visible; }
+  .nav-item > a { display: inline-block; padding: 14px 0; }
+  .nav-menu {
+    display: block; position: absolute; top: 100%; left: 50%; min-width: 220px;
+    padding: 8px; border: 1px solid var(--line); border-radius: 14px;
+    background: #0a0a0c;      /* opaque: a blur inside the blurred menu bar does not work in browsers */
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    opacity: 0; visibility: hidden; transform: translate(-50%, -4px);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+  }
+  .nav-item:last-child .nav-menu { left: auto; right: -12px; transform: translateY(-4px); }
+  .nav-item:hover .nav-menu, .nav-item:focus-within .nav-menu {
+    opacity: 1; visibility: visible; transform: translate(-50%, 0);
+  }
+  .nav-item:last-child:hover .nav-menu, .nav-item:last-child:focus-within .nav-menu { transform: translateY(0); }
+  .nav-menu a { display: block; padding: 8px 12px; border-radius: 9px; font-size: 13px; white-space: nowrap; color: var(--text-2); }
+  .nav-menu a:hover, .nav-menu a:focus-visible { background: rgba(255, 255, 255, 0.07); color: var(--text); outline: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-menu { transition: none; }
+}

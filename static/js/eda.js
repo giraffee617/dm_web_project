@@ -44,8 +44,7 @@
     const first = decades[0];
     const last = decades[decades.length - 1];
     UB.rich(document.getElementById("ridgeline-takeaway"),
-      `The median winter day was ${UB.num(first.median)}° in the ${first.decade}s and ${UB.num(last.median)}° in the ${last.decade}s. ` +
-      `The lines lie almost on top of each other: [[winters have barely changed]], while spring has warmed.`);
+      `The median winter day: ${UB.num(first.median)}° in the ${first.decade}s, ${UB.num(last.median)}° in the ${last.decade}s. [[Winters have barely changed]].`);
 
     UB.responsive(el, (width) => {
       const m = { top: 16, right: width < 640 ? 46 : 64, bottom: 40, left: 44 };
@@ -124,7 +123,7 @@
     const spring = rows.find((r) => r.season === "Spring");
     const winter = rows.find((r) => r.season === "Winter");
     UB.rich(document.getElementById("warming-takeaway"),
-      `Spring has warmed the most, [[${UB.signed(spring.trend_per_decade, 2)}° per decade]], from a mean of ${UB.num(spring.first_decade_mean)}° in its first ten years to ${UB.num(spring.last_decade_mean)}° in the last ten. Winter has changed very little (${UB.signed(winter.trend_per_decade, 2)}° per decade).`);
+      `Spring warmed the most: [[${UB.signed(spring.trend_per_decade, 2)}° per decade]] (${UB.num(spring.first_decade_mean)}° → ${UB.num(spring.last_decade_mean)}°). Winter barely changed (${UB.signed(winter.trend_per_decade, 2)}° per decade).`);
 
     UB.responsive(el, (width) => {
       const bar = 46;
@@ -140,45 +139,6 @@
         .attr("stroke", UB.css("--warm")).attr("stroke-width", 6).attr("stroke-linecap", "round").attr("filter", blur);
       g.append("text").attr("class", "label-strong").attr("x", (d) => x(Math.max(d.trend_per_decade, 0)) + 14).attr("dy", "0.35em")
         .text((d) => `${UB.signed(d.trend_per_decade, 2)}° per decade`);
-    });
-  }
-
-  function seasonal(data) {
-    const el = document.getElementById("seasonal");
-    const dates = data.dates.map((s) => new Date(`2001-${s}T00:00:00Z`));
-    UB.responsive(el, (width) => {
-      const m = { top: 10, right: 10, bottom: 30, left: 44 };
-      const height = Math.round(Math.max(260, width * 0.4));
-      const x = d3.scaleUtc().domain([dates[0], dates[dates.length - 1]]).range([m.left, width - m.right]);
-      const y = d3.scaleLinear().domain([-30, 25]).range([height - m.bottom, m.top]);
-      const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("aria-label", "The normal year");
-      const blur = UB.glow(svg, "season-glow", 4);
-      svg.append("g").attr("class", "grid").selectAll("line").data(y.ticks(5)).join("line")
-        .attr("x1", m.left).attr("x2", width - m.right).attr("y1", y).attr("y2", y);
-      svg.append("g").attr("class", "axis").attr("transform", `translate(${m.left - 8},0)`)
-        .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${UB.num(v, 0)}°`).tickSize(0)).call((g) => g.select(".domain").remove());
-      svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - m.bottom + 10})`)
-        .call(d3.axisBottom(x).ticks(d3.utcMonth.every(width < 640 ? 2 : 1)).tickFormat(d3.utcFormat("%b")).tickSize(0))
-        .call((g) => g.select(".domain").remove());
-
-      svg.append("path").attr("fill", UB.css("--cold")).attr("opacity", 0.13)
-        .attr("d", d3.area().curve(d3.curveBasis).x((d, i) => x(dates[i])).y0((d, i) => y(data.p10[i])).y1((d, i) => y(data.p90[i]))(dates));
-      svg.append("path").attr("fill", "none").attr("stroke", UB.css("--cold")).attr("stroke-width", 2.2).attr("filter", blur)
-        .attr("d", d3.line().curve(d3.curveBasis).x((d, i) => x(dates[i])).y((d, i) => y(data.normal[i]))(dates));
-
-      const hover = svg.append("g").style("display", "none");
-      hover.append("line").attr("y1", m.top).attr("y2", height - m.bottom).attr("stroke", "#ffffff").attr("opacity", 0.25);
-      hover.append("circle").attr("r", 4).attr("fill", "#fff");
-      svg.append("rect").attr("x", m.left).attr("y", m.top).attr("width", width - m.left - m.right).attr("height", height - m.top - m.bottom)
-        .attr("fill", "transparent")
-        .on("pointermove", (e) => {
-          const i = Math.max(0, Math.min(dates.length - 1, d3.bisectCenter(dates, x.invert(d3.pointer(e)[0]))));
-          hover.style("display", null).attr("transform", `translate(${x(dates[i])},0)`);
-          hover.select("circle").attr("cy", y(data.normal[i]));
-          UB.showTip(e, d3.utcFormat("%-d %B")(dates[i]), [`Normal ${UB.num(data.normal[i])}°`,
-            `~8 in 10 days between ${UB.num(data.p10[i])}° and ${UB.num(data.p90[i])}°`]);
-        })
-        .on("pointerleave", () => { hover.style("display", "none"); UB.hideTip(); });
     });
   }
 
@@ -240,9 +200,8 @@
     const c = data.comparison;
     const p = c.welch_p < 0.001 ? "p < 0.001" : `p = ${c.welch_p}`;
     UB.rich(document.getElementById("everyday-takeaway"),
-      `In the 1960s, ${then}% of days were warmer than normal. In ${c.recent[0]} to ${c.recent[1]}, [[${now}%]] were. ` +
-      `The mean yearly anomaly rose from ${UB.signed(c.early_mean, 2)}° to ${UB.signed(c.recent_mean, 2)}°, a statistically significant difference ` +
-      `([[Welch's t-test on yearly means, ${p}]]) with a large effect size ([[Cohen's d = ${c.cohens_d.toFixed(1)}]]).`);
+      `Warmer than normal days: ${then}% in the 1960s, [[${now}%]] in ${c.recent[0]} to ${c.recent[1]}. ` +
+      `A significant change ([[Welch's t-test, ${p}]]) with a large effect ([[Cohen's d = ${c.cohens_d.toFixed(1)}]]).`);
 
     UB.responsive(el, (width) => {
       const m = { top: 22, right: 0, bottom: 0, left: width < 640 ? 34 : 44 };
@@ -315,7 +274,6 @@
     load("everyday", "data/every_day.json", everyDay);
     load("ridgeline", "data/every_day.json", (d) => { winterLines(d); ridgeScroll(); });
     load("warming", "data/warming.json", warming);
-    load("seasonal", "data/seasonal.json", seasonal);
     load("upwind", "data/upwind.json", upwind);
   });
 })();

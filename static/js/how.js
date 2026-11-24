@@ -31,8 +31,8 @@
       });
       const up = Math.round((g["Upwind sites"] / total) * 100);
       UB.rich(document.getElementById("shap-takeaway"), day === 0
-        ? `One day ahead, Ulaanbaatar's own conditions matter most, but upwind places already account for [[${up}% of the importance]].`
-        : `${DAYS[day][0]} days ahead, upwind places account for [[${up}% of the importance]]. At longer lead times, conditions upwind matter more than conditions in Ulaanbaatar itself.`);
+        ? `1 day ahead, Ulaanbaatar's own temperature is the strongest single feature, and upwind places together give [[${up}% of the importance]].`
+        : `${DAYS[day][0]} days ahead, upwind places give [[${up}% of the importance]], more than Ulaanbaatar itself.`);
     });
 
     redrawFeatures = UB.responsive(featEl, (width) => {

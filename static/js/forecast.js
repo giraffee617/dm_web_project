@@ -86,9 +86,6 @@
       model.append(s ? timesBlock([["12 PM", d.temperature + s.h12], ["8 PM", d.temperature + s.h20]])
         : timesBlock([["Day average", d.temperature]]));
       model.append(el("p", "day-mean", `Day average ${UB.num(d.temperature)}°`));
-      const diff = el("p", `day-diff ${d.anomaly < 0 ? "is-cold" : "is-warm"}`,
-        Math.abs(d.anomaly) < 0.5 ? "About normal" : `${Math.abs(d.anomaly).toFixed(1)}° ${d.anomaly < 0 ? "colder" : "warmer"} than normal`);
-      model.append(diff, el("p", "day-err", `Usually within ${d.typical_error.toFixed(1)}°`));
 
       // Actual weather from the weather service.
       const real = el("div", "day day-actual");
@@ -96,9 +93,6 @@
       if (a) {
         real.append(timesBlock([["12 PM", a.h12], ["8 PM", a.h20]]));
         real.append(el("p", "day-mean", `Day average ${UB.num(a.mean)}°`));
-        real.append(el("p", "day-range", `Low ${UB.num(a.min, 0)}°, high ${UB.num(a.max, 0)}°`));
-        const gap = d.temperature - a.mean;
-        real.append(el("p", "day-err", `Model day average ${Math.abs(gap) < 0.5 ? "matches" : `is ${Math.abs(gap).toFixed(1)}° ${gap < 0 ? "colder" : "warmer"}`}`));
       } else {
         real.append(el("p", "day-err", "The weather service could not be reached."));
       }
@@ -107,11 +101,11 @@
       rows.appendChild(row);
     });
 
-    meta.textContent = `Model forecast based on weather up to ${longDate(f.data_through)}. `
-      + "Actual weather: Open-Meteo, which combines national weather services such as ECMWF; days that have not happened yet are their forecast.";
+    meta.textContent = `Model: based on weather up to ${longDate(f.data_through)}. `
+      + "Actual weather: Open-Meteo (national weather services); days still to come are their forecast.";
     document.getElementById("swing-note").textContent = usedTypical
-      ? "Model 12 PM and 8 PM: the model forecasts the daily mean, and the usual difference between that hour and the daily mean on this date is added."
-      : "Model 12 PM and 8 PM: the model forecasts the daily mean, and the difference between that hour and the daily mean is taken from the weather service.";
+      ? "Model 12 PM and 8 PM: the model's day average plus that hour's usual difference on this date."
+      : "Model 12 PM and 8 PM: the model's day average plus that hour's difference from the weather service.";
     if (f.stale) document.getElementById("forecast-note").textContent = "The model forecast could not be updated, so this is the most recent saved forecast.";
   }
 

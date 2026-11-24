@@ -86,8 +86,8 @@
       });
       box.appendChild(table);
       UB.rich(document.getElementById("cm-takeaway"),
-        `Accuracy is [[${Math.round(h.accuracy * 100)}%]] on ${d3.format(",")(h.days)} test days (a random guess would score about 33%), macro F1 ${macroF1.toFixed(2)}. ` +
-        `A cold day was predicted as warm, or the reverse, on only [[${h.far_misses} days]]. Most errors are between neighbouring classes.`);
+        `[[${Math.round(h.accuracy * 100)}%]] of ${d3.format(",")(h.days)} test days in the right class (random guess: about 33%), macro F1 ${macroF1.toFixed(2)}. ` +
+        `Cold predicted as warm, or the reverse: only [[${h.far_misses} days]].`);
     });
   }
 
@@ -128,7 +128,7 @@
     const libs = [["catboost", "CatBoost"], ["lightgbm", "LightGBM"], ["xgboost", "XGBoost"]]
       .map(([id, name]) => ({ id, name, v: b.results[id].mean })).sort((a, c) => a.v - c.v);
     UB.rich(document.getElementById("bakeoff-takeaway"),
-      `[[CatBoost had the lowest error]] and was selected for tuning. It also won a second comparison in which every library could grow as many trees as early stopping allowed, since the defaults give CatBoost 1,000 trees and the others 100.`);
+      `[[CatBoost had the lowest error]] and was tuned further. It also won a fair rerun where every library could grow as many trees as it needed.`);
     UB.responsive(el, (width) => {
       const row = 50;
       const m = { left: 96, right: 70 };
@@ -194,7 +194,7 @@
       return Math.round((1 - t.model.rmse / t.persistence.rmse) * 100);
     });
     UB.rich(document.getElementById("baselines-takeaway"),
-      `The model beats both baselines on all three days. Its RMSE is [[${better[0]}% lower than persistence]] 1 day ahead, ${better[1]}% lower 2 days ahead and ${better[2]}% lower 3 days ahead.`);
+      `The model beats both baselines on all three days: [[${better[0]}% lower error than persistence]] 1 day ahead, ${better[1]}% at 2 days, ${better[2]}% at 3 days.`);
 
     UB.responsive(el, (width) => {
       const bar = 14;
@@ -222,9 +222,9 @@
   function source(sc) {
     const s = sc.summary;
     document.getElementById("source-note").textContent =
-      `The model learned from the ERA5 climate record, but the live forecast uses recent data from a different weather service, because ERA5 is about five days behind. ` +
-      `On ${s.days_compared} recent days, the two sources differed by ${s.ub_temperature_mae.toFixed(1)}° on average for Ulaanbaatar. ` +
-      `Switching sources moved the 1 day forecast by ${s.forecast_change_mae.d1.toFixed(1)}°, which is less than its usual error.`;
+      `Live forecasts use a different weather service than the training data (ERA5 is about five days behind). ` +
+      `On ${s.days_compared} recent days the two differed by ${s.ub_temperature_mae.toFixed(1)}° for Ulaanbaatar, ` +
+      `which moved the 1 day forecast by ${s.forecast_change_mae.d1.toFixed(1)}°: less than its usual error.`;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
