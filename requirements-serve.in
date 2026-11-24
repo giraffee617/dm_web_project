@@ -1,0 +1,13 @@
+# Packages the web server needs (a subset of requirements.in, used by the Dockerfile).
+# Versions are forced to match requirements.txt, so the server runs exactly what was tested.
+# Regenerate after changing requirements.txt with:
+#   uv pip compile requirements-serve.in -c requirements.txt --python-version 3.14 --python-platform linux -o requirements-serve.txt
+numpy
+pandas
+pyarrow
+requests
+scikit-learn
+optuna
+catboost
+fastapi
+uvicorn

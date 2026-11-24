@@ -1,0 +1,13 @@
+# Files Docker never needs to see (keeps the build fast and the image small).
+.git/
+.venv/
+**/__pycache__/
+*.pyc
+*.tmp
+data/
+cache/
+docs/
+tests/
+models/optuna.sqlite
+models/reports/
+.vscode/

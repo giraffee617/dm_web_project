@@ -270,6 +270,37 @@ Plain HTML, CSS and JavaScript with **D3 7.9.0** (pinned, from cdnjs) and the In
 3. **The normal:** mid-January's normal is -20.0 degC; at the end of March even the coldest 10% of days only reach
    about -7.6 degC.
 
+## Phase 6: deployment (Docker on Render)
+
+The website and the API run in one Docker container. Render builds it straight from this GitHub repo
+and redeploys automatically after every `git push`.
+
+```
+docker build -t ub-forecast .
+docker run -p 7860:7860 ub-forecast                       # open http://localhost:7860
+```
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Python 3.14.6 (slim), installs the server packages, copies code, final models and the website, runs uvicorn as a normal user (not root) |
+| `requirements-serve.txt` | Only the packages the server needs (no LightGBM, XGBoost or SHAP), compiled **against `requirements.txt`**, so every version is identical to development |
+| `.dockerignore` | Keeps raw and processed data, Optuna history, reports, tests and docs out of the image |
+
+**Render settings:** Web Service, language Docker, region Singapore (closest to Mongolia), instance type Free,
+health check path `/api/meta` (answers without calling the weather API). The container listens on `$PORT`,
+which Render sets; locally it defaults to 7860.
+
+**Checked before deploying** (in a clean environment with only the image's files and packages):
+the site, all chart data and `/api/meta` load; `/api/forecast` gives **exactly the same forecast** as the
+development environment; the daily cache is written; the server peaks at about **370 MB** of memory
+(Render Free has 512 MB); Ulaanbaatar's time zone works without the operating system's time zone files.
+
+**Limits of the free hosting:**
+1. The service sleeps after 15 minutes without visitors. The next visit wakes it, which takes about a minute.
+2. Its disk is wiped when it sleeps, so the cached forecast is lost and recomputed on the first visit.
+   If Open-Meteo is unreachable at that moment, there is no older forecast to fall back on, and the site
+   says the live forecast is unavailable.
+
 ## Data notes
 
 1. Hourly model data (1980 to 2025, 5 sites) uses `era5_seamless` (ERA5-Land + ERA5), because pure
@@ -328,6 +359,13 @@ All 19 were caught.
 | 13 | The validator showed **blue and violet are almost identical for red-green color-blind readers** (difference 1.9, target 8). The same check failed gray vs blue for train/validation lines. | Switched to validated colors (blue / orange / aqua; aqua vs blue). | Eyeballing colors misses this; computing them does not. |
 | 14 | The map first rendered as an **empty box**: D3 expects map outlines drawn clockwise, the opposite of the GeoJSON standard, so it drew "the world minus Mongolia". | Re-oriented the borders, fit the view to points, and added a test for ring direction. | A classic D3 trap that is invisible in the data files. |
 | 15 | A sentence on the site said "-25 degC is an ordinary January day"; the chart itself shows only about 10% of January days are that cold. | Corrected to -20 degC (mid-January's normal is -20.0 degC). | Text claims are checked against the data, like the charts. |
+
+### Problems found in Phase 6
+
+| # | Problem found | What we changed | Why it matters |
+|---|---|---|---|
+| 16 | Installing the full `requirements.txt` in the container would also install LightGBM, XGBoost (with a large NVIDIA library on Linux) and SHAP, none of which the server uses. | A separate `requirements-serve.txt`, compiled with `requirements.txt` as a constraint, so it is smaller but every shared version is identical. | A smaller image builds faster and fits the free tier, without any version drift between training and serving. |
+| 17 | The slim Docker image has **no time zone files**, and the forecast date depends on Ulaanbaatar's time zone. | Python's `tzdata` package (already in the lock) supplies it; tested with the system time zone files hidden. | Without it, every forecast request would fail with a "time zone not found" error. |
 
 ### Risks planned for later phases
 
