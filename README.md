@@ -228,6 +228,48 @@ training pipeline's prediction for the same day; 40 degC junk in "today's" forec
 data with missing values is refused; the daily cache, the stale fallback and the 10 minute retry pause work;
 the API endpoints answer (200, or 503 when no forecast exists); and the source check runs.
 
+## Phase 5: the website
+
+```
+.venv\Scripts\python -m src.export                       # also writes the EDA chart data (static/data/)
+.venv\Scripts\python -m uvicorn app.main:app --port 7860  # open http://localhost:7860
+```
+
+Plain HTML, CSS and JavaScript with **D3 7.9.0** (pinned, from cdnjs) and the Inter font. No frameworks.
+"Polar night" colors are CSS variables in `static/css/style.css`; one script per section in `static/js/`.
+
+| Section | What it shows |
+|---|---|
+| **Forecast** (hero) | The live 3 day forecast from `/api/forecast`: temperature, anomaly chip (cyan colder / amber warmer), normal, typical error, plus the live-data note |
+| **The data** | Cold wave map with the 5 sites (glowing, pulsing points) and a replay of the **January 1988** cold snap; winter ridgeline by decade; warming by season; the seasonal cycle and the normal; the upwind head start |
+| **How it works** | The pipeline in 7 steps, why anomalies, why upwind sites, SHAP importance by group and the top 10 features per day |
+| **Performance** | Train / validation / test error table, library bake-off, feature selection curve, learning curves with the early stopping point, live data vs training data |
+
+### Design decisions
+
+1. **The replay event was chosen from the data, not by hand.** All sharp UB cold snaps since 1980 were searched for
+   ones where the cold reaches Khovd, Uliastai, Moron and UB in that order. January 1988 is the clearest winter case:
+   Khovd 20 Jan 11:00, Uliastai 21 Jan 11:00, Moron 21 Jan 17:00, Irkutsk 21 Jan 23:00, UB 22 Jan 05:00
+   (first time the 24 hour average is 6 degC below normal).
+2. **The replay uses 24 hour averages**, not raw 6 hourly temperatures: raw values swing with day and night, so every
+   night would look like a cold wave.
+3. **Every chart color was checked with a color-vision validator** (normal vision and red-green color blindness) on
+   the dark surface: feature groups blue / orange / aqua, forecast days a light-to-dark blue ramp, train vs
+   validation aqua vs blue. Signs (+/-) are always printed, so color never carries meaning alone.
+4. **Every chart has a "Show data" table** and keyboard-accessible tooltips. The page works down to phone width, and
+   with "reduce motion" turned on the points stop pulsing.
+5. **The map borders are bundled** (`static/data/basemap.json`, 51 KB, Natural Earth via world-atlas 2.0.2, clipped
+   to the region), so the map does not depend on another server.
+
+### EDA findings shown on the site
+
+1. **Winters have not warmed:** the median winter day was -19.3 degC in the 1940s and -19.2 degC in the 2020s
+   (between -20.2 and -17.9 in every decade; mildest: the 1990s).
+2. **The rest of the year has:** spring +0.38 degC per decade (0.4 -> 2.9 degC), summer +0.20, autumn +0.18,
+   winter only +0.05 (1940 to 2025).
+3. **The normal:** mid-January's normal is -20.0 degC; at the end of March even the coldest 10% of days only reach
+   about -7.6 degC.
+
 ## Data notes
 
 1. Hourly model data (1980 to 2025, 5 sites) uses `era5_seamless` (ERA5-Land + ERA5), because pure
@@ -277,6 +319,15 @@ All 19 were caught.
 | # | Problem found | What we changed | Why it matters |
 |---|---|---|---|
 | 11 | The forecast API returns all 24 hours of **today**, including hours that have not happened yet (model forecasts). Treated as a complete day, they would enter the model as if they were observations. | The live pipeline keeps only complete past days and issues the forecast from yesterday. A test puts 40 degC junk into today's hours and checks that nothing changes. | A subtle way to mix forecasts into inputs, invisible in normal use. |
+
+### Problems found in Phase 5
+
+| # | Problem found | What we changed | Why it matters |
+|---|---|---|---|
+| 12 | The first replay event (November 2000) looked like a clean west-to-east cold wave, but much of that "progression" was **night-time cooling** in the 6 hourly data. | Replay data uses 24 hour averages, and the event search was re-run on them; January 1988 holds up. | A pretty animation of an artefact would be a misleading chart. |
+| 13 | The validator showed **blue and violet are almost identical for red-green color-blind readers** (difference 1.9, target 8). The same check failed gray vs blue for train/validation lines. | Switched to validated colors (blue / orange / aqua; aqua vs blue). | Eyeballing colors misses this; computing them does not. |
+| 14 | The map first rendered as an **empty box**: D3 expects map outlines drawn clockwise, the opposite of the GeoJSON standard, so it drew "the world minus Mongolia". | Re-oriented the borders, fit the view to points, and added a test for ring direction. | A classic D3 trap that is invisible in the data files. |
+| 15 | A sentence on the site said "-25 degC is an ordinary January day"; the chart itself shows only about 10% of January days are that cold. | Corrected to -20 degC (mid-January's normal is -20.0 degC). | Text claims are checked against the data, like the charts. |
 
 ### Risks planned for later phases
 

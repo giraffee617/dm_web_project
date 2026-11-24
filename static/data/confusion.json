@@ -1,0 +1,90 @@
+{
+  "classes": [
+    "colder",
+    "near normal",
+    "warmer"
+  ],
+  "thresholds_degC": {
+    "low": -1.69,
+    "high": 1.92
+  },
+  "threshold_rule": "terciles of the day+1 anomaly on training rows (1980 to 2019)",
+  "period": [
+    "2023-01-01",
+    "2025-12-28"
+  ],
+  "model": "final (deployed) CatBoost models, trained 1980 to 2022",
+  "rows_are": "what really happened",
+  "columns_are": "model predicted",
+  "horizons": {
+    "d1": {
+      "matrix": [
+        [
+          220,
+          46,
+          1
+        ],
+        [
+          33,
+          286,
+          59
+        ],
+        [
+          1,
+          67,
+          380
+        ]
+      ],
+      "accuracy": 0.811,
+      "far_misses": 2,
+      "far_miss_share": 0.002,
+      "days": 1093
+    },
+    "d2": {
+      "matrix": [
+        [
+          165,
+          82,
+          19
+        ],
+        [
+          57,
+          257,
+          65
+        ],
+        [
+          14,
+          127,
+          307
+        ]
+      ],
+      "accuracy": 0.667,
+      "far_misses": 33,
+      "far_miss_share": 0.03,
+      "days": 1093
+    },
+    "d3": {
+      "matrix": [
+        [
+          127,
+          112,
+          26
+        ],
+        [
+          45,
+          260,
+          75
+        ],
+        [
+          19,
+          204,
+          225
+        ]
+      ],
+      "accuracy": 0.56,
+      "far_misses": 45,
+      "far_miss_share": 0.041,
+      "days": 1093
+    }
+  }
+}

@@ -1,0 +1,42 @@
+[
+ {
+  "season": "Winter",
+  "trend_per_decade": 0.05,
+  "first_decade_mean": -19.2,
+  "last_decade_mean": -19.3,
+  "years": [
+   1941,
+   2025
+  ]
+ },
+ {
+  "season": "Spring",
+  "trend_per_decade": 0.38,
+  "first_decade_mean": 0.4,
+  "last_decade_mean": 2.9,
+  "years": [
+   1940,
+   2025
+  ]
+ },
+ {
+  "season": "Summer",
+  "trend_per_decade": 0.2,
+  "first_decade_mean": 16.3,
+  "last_decade_mean": 17.2,
+  "years": [
+   1940,
+   2025
+  ]
+ },
+ {
+  "season": "Autumn",
+  "trend_per_decade": 0.18,
+  "first_decade_mean": -1.0,
+  "last_decade_mean": -0.3,
+  "years": [
+   1940,
+   2025
+  ]
+ }
+]

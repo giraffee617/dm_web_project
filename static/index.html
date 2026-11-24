@@ -3,23 +3,385 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UB Forecast (placeholder)</title>
-  <!-- Temporary page for Phase 4. The real website is built in Phase 5. -->
-  <style>
-    body { background: #0f1620; color: #e6eef5; font-family: system-ui, sans-serif; padding: 2rem; }
-    a { color: #7fd3e6; }
-    pre { background: #17212d; padding: 1rem; border-radius: 8px; overflow-x: auto; }
-  </style>
+  <title>The Coldest Capital</title>
+  <meta name="description" content="A three day temperature forecast for Ulaanbaatar, made by a machine learning model that watches the weather to the west.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261118">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" defer></script>
+  <script src="js/atmosphere.js?v=20261118" defer></script>
+  <script src="js/common.js?v=20261118" defer></script>
+  <script src="js/forecast.js?v=20261118" defer></script>
+  <script src="js/map.js?v=20261118" defer></script>
+  <script src="js/coldwave.js?v=20261118" defer></script>
+  <script src="js/eda.js?v=20261118" defer></script>
+  <script src="js/how.js?v=20261118" defer></script>
+  <script src="js/model.js?v=20261118" defer></script>
+  <script src="js/performance.js?v=20261118" defer></script>
 </head>
 <body>
-  <h1>Forecasting the Coldest Capital on Earth</h1>
-  <p>Backend is running. The website comes in Phase 5. API: <a href="/api/forecast">/api/forecast</a> · <a href="/api/meta">/api/meta</a> · <a href="/docs">/docs</a></p>
-  <pre id="out">Loading forecast...</pre>
-  <script>
-    fetch("/api/forecast")
-      .then(r => r.json())
-      .then(d => { document.getElementById("out").textContent = JSON.stringify(d, null, 2); })
-      .catch(e => { document.getElementById("out").textContent = "Error: " + e; });
-  </script>
+  <canvas id="snow" class="snow" aria-hidden="true"></canvas>
+  <div class="frost" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <nav class="nav" aria-label="Sections">
+    <div class="nav-inner">
+      <a class="brand" href="#top">The Coldest Capital</a>
+      <div class="nav-links">
+        <a href="#data">Data</a>
+        <a href="#history">History</a>
+        <a href="#how">How it works</a>
+        <a href="#model">Model</a>
+        <a href="#performance">Accuracy</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+
+    <!-- Forecast -->
+    <section class="hero">
+      <div class="wrap">
+        <h1 class="reveal flicker">Forecasting the coldest capital on Earth</h1>
+        <p class="hero-sub reveal">A three day temperature forecast for Ulaanbaatar from a gradient boosting model trained on <span class="kw">46 years</span> of hourly weather data.</p>
+        <div class="compare reveal">
+          <div class="compare-head">
+            <p>Model prediction</p>
+            <p>Actual weather</p>
+          </div>
+          <div class="compare-rows" id="forecast-days" aria-live="polite"></div>
+        </div>
+        <p class="fine" id="forecast-meta">Loading the forecast</p>
+        <p class="fine" id="swing-note"></p>
+        <p class="fine" id="forecast-note"></p>
+      </div>
+    </section>
+
+    <!-- Data -->
+    <section id="data" class="block">
+      <div class="wrap">
+        <h2 class="reveal flicker">Data</h2>
+        <p class="lead reveal">All data comes from <span class="kw">ERA5</span>, a global record of hourly weather since 1940, produced in Europe.</p>
+
+        <div class="facts reveal">
+          <div><p class="fact-v">1940</p><p class="fact-l">first day in the record</p></div>
+          <div><p class="fact-v">403,248</p><p class="fact-l">hourly readings per place, 1980 to 2025</p></div>
+          <div><p class="fact-v">10</p><p class="fact-l">variables measured every hour</p></div>
+          <div><p class="fact-v">0</p><p class="fact-l">missing values</p></div>
+        </div>
+
+        <div class="story reveal">
+          <div>
+            <h3>Source</h3>
+            <p>ERA5 is produced by the <span class="kw">European Centre for Medium-Range Weather Forecasts (ECMWF)</span> for Copernicus, the European Union's Earth observation programme. It is free to use.</p>
+          </div>
+          <div>
+            <h3>How it is made</h3>
+            <p>Millions of observations from weather stations, balloons, aircraft, ships and satellites are combined with a weather model, which fills the gaps between them. The result has a value for every hour and every place on Earth since 1940. This kind of dataset is called a <span class="kw">reanalysis</span>.</p>
+          </div>
+          <div>
+            <h3>Collection</h3>
+            <p>The data was downloaded through Open-Meteo, a free weather API. Every file was validated before it was saved: a complete time axis, no missing values, and all values within physical limits.</p>
+          </div>
+          <div>
+            <h3>Limits of the data</h3>
+            <p>Each point represents a grid square, about 9 km wide for the hourly data and about 28 km wide for the record since 1940. The values are smooth and complete, but can differ from a single weather station in the city.</p>
+          </div>
+        </div>
+
+        <div class="panel reveal">
+          <h3>What was measured every hour</h3>
+          <ul class="measures">
+            <li>Temperature</li><li>Humidity</li><li>Dew point</li><li>Air pressure</li><li>Wind speed</li>
+            <li>Wind direction</li><li>Cloud cover</li><li>Rain and snowfall</li><li>Snow on the ground</li><li>Sunlight</li>
+          </ul>
+          <p class="explain">All ten are continuous numeric variables. Each day is summarized into <span class="kw">17 values per place</span>, such as the daily mean, minimum and maximum temperature and the 24 hour change in pressure. Wind direction is circular (359° and 1° are neighbours), so it was converted into a north and an east component. No scaling or normalization was needed, because decision trees only compare values against thresholds.</p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Choice of places</h3>
+          <div class="two two-tight">
+            <p>Weather in Mongolia mostly moves from west to east, so the places were chosen along that path: Khovd in the far west, Uliastai, Mörön in the north west, and Ulaanbaatar. Cold air that crosses them in turn gives the model <span class="kw">advance warning</span>.</p>
+            <p>Adding places has a cost. Each place adds 17 values per day, while the dataset has <span class="kw">16,764 days</span>. With too many features relative to the number of examples, a model starts fitting noise. The free API also limits how much data can be downloaded.</p>
+          </div>
+          <p class="explain">The model also uses one place across the northern border, Irkutsk in Russia, to capture cold air arriving from Siberia.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section id="history" class="block">
+      <div class="wrap">
+        <h2 class="reveal flicker">History</h2>
+        <p class="lead reveal">Exploratory analysis of Ulaanbaatar's temperature since 1940, and of how cold air moves across Mongolia.</p>
+
+        <div class="panel reveal" id="map-section">
+          <h3>Daily temperature anomaly at four places, 1980 to 2025</h3>
+          <p class="explain">Each light is one of the four Mongolian places in the data, colored by how far that day was from normal. Drag the slider to move through the days.</p>
+        </div>
+      </div>
+      <div class="wrap map-readout">
+        <p class="map-date" id="map-date"></p>
+        <p class="map-sub" id="map-sub"></p>
+      </div>
+      <div class="map-stage">
+        <div id="map" class="map"></div>
+      </div>
+      <div class="wrap">
+        <div class="scrubber">
+          <button type="button" class="btn" id="map-play">Play</button>
+          <input type="range" id="map-slider" min="0" max="0" value="0" aria-label="Day">
+        </div>
+        <div class="scrub-years" id="map-years" aria-hidden="true"></div>
+        <div class="map-foot">
+          <div class="scale" aria-hidden="true">
+            <span>Colder than normal</span>
+            <i class="scale-bar"></i>
+            <span>Warmer than normal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <div class="panel reveal" id="coldwave-section">
+          <h3>Cold Wave of Mongolia</h3>
+          <p class="explain">Cold waves reach Mongolia most winters. The one in January 1988 is shown because it crossed the four places in a clear order from west to east. Color shows how much colder or warmer each area became compared with 16 January, and the moving streaks follow the real wind near the ground (ERA5, every 6 hours).</p>
+          <div class="cw-top">
+            <button type="button" class="btn" id="cw-play">Simulate the cold wave</button>
+            <p class="cw-time" id="cw-time"></p>
+          </div>
+        </div>
+      </div>
+      <div class="map-stage">
+        <div id="coldwave" class="map coldwave"></div>
+      </div>
+      <div class="wrap">
+        <div class="map-foot">
+          <div class="scale" aria-hidden="true">
+            <span>Colder than on 16 January</span>
+            <i class="scale-bar"></i>
+            <span>Warmer</span>
+          </div>
+          <p class="fine">Streaks: wind direction and speed at 10 m</p>
+        </div>
+        <p class="takeaway reveal">The cold reached Khovd first, then Uliastai and Mörön, and Ulaanbaatar about <span class="kw">two days later</span>, carried by westerly and north westerly winds. This lead time is the signal the upwind features capture.</p>
+      </div>
+      <div class="wrap">
+        <div class="panel reveal">
+          <h3>Daily anomaly, 1940 to 2025</h3>
+          <p class="explain">One row per year and one mark per day. Blue marks colder than normal days, amber marks warmer days, and near normal days fade into the background. Hover to see a single day.</p>
+          <div class="everyday" id="everyday"></div>
+          <div class="scale" aria-hidden="true"><span>Colder than normal</span><i class="scale-bar"></i><span>Warmer than normal</span></div>
+          <p class="takeaway" id="everyday-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>A typical winter, decade by decade</h3>
+          <p class="explain">Each line is one decade: the typical (median) temperature on each day from 1 December to 28 February. The grey band shows the range of 8 out of 10 winter days over all years. Lines appear one decade at a time as you scroll.</p>
+          <div class="chart" id="ridgeline"></div>
+          <div class="decade-key" aria-hidden="true"><span>1940s</span><i></i><span>2020s</span></div>
+          <p class="takeaway" id="ridgeline-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Temperature trend by season</h3>
+          <p class="explain">Linear trend of each season's mean temperature since 1940, in °C per decade.</p>
+          <div class="chart" id="warming"></div>
+          <p class="takeaway" id="warming-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Seasonal cycle and the normal</h3>
+          <p class="explain">The bright line is the normal temperature for each day of the year, a smooth curve fitted to 1980 to 2019. The shaded band contains 80% of real days.</p>
+          <div class="chart" id="seasonal"></div>
+          <p class="takeaway">The model predicts the <span class="kw">deviation from this curve</span> (the anomaly), not the temperature itself.</p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Correlation with Ulaanbaatar 1 to 3 days later</h3>
+          <p class="explain">Pearson correlation between each place's anomaly today and Ulaanbaatar's anomaly 1, 2 and 3 days later. A value of 1 would be a perfect linear match.</p>
+          <div class="chart" id="upwind"></div>
+          <p class="takeaway">Two days ahead, <span class="kw">Mörön predicts Ulaanbaatar better than Ulaanbaatar itself</span> (0.56 against 0.51).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="block">
+      <div class="wrap">
+        <h2 class="reveal flicker">How it works</h2>
+        <p class="lead reveal">The project follows the <span class="kw">knowledge discovery (KDD) process</span>, from raw data to an evaluated model.</p>
+
+        <ol class="steps reveal">
+          <li><span class="step-n">1</span><h4>Selection</h4><p>Hourly weather for Ulaanbaatar and the places upwind of it, 1980 to 2025.</p></li>
+          <li><span class="step-n">2</span><h4>Preprocessing</h4><p>Validation of every file, complete days only, hourly values summarized into 17 daily values per place.</p></li>
+          <li><span class="step-n">3</span><h4>Transformation</h4><p>The normal is subtracted to give the anomaly, then lags, rolling averages and upwind differences are added: 158 features.</p></li>
+          <li><span class="step-n">4</span><h4>Data mining</h4><p>Feature selection, then CatBoost gradient boosting, one model for each day ahead.</p></li>
+          <li><span class="step-n">5</span><h4>Evaluation</h4><p>Hold-out test on 2023 to 2025, comparison with baselines, error analysis and SHAP explanations.</p></li>
+        </ol>
+
+        <div class="two reveal">
+          <div>
+            <h3>Why predict the anomaly?</h3>
+            <p>The seasonal cycle is known in advance. Removing it lets the model focus on the part that is hard to predict: whether the coming days will be warmer or colder than usual. The normal is added back at the end.</p>
+          </div>
+          <div>
+            <h3>Why use upwind places?</h3>
+            <p>Weather in Mongolia mostly moves from the west and north. Conditions over Khovd or Mörön today often reach Ulaanbaatar one to three days later, which gives the model useful lead time.</p>
+          </div>
+        </div>
+
+        <div class="two reveal">
+          <div>
+            <h3>Gradient boosting</h3>
+            <p>Gradient boosting is an <span class="kw">ensemble</span> of many small decision trees. Unlike bagging, where trees are trained independently and averaged, boosting trains them in sequence: each new tree is fitted to the errors left by the trees before it.</p>
+          </div>
+          <div>
+            <h3>How each tree is grown</h3>
+            <p>A regression tree chooses the split that reduces the <span class="kw">squared error</span> the most, the regression counterpart of information gain or Gini impurity in classification. CatBoost grows symmetric trees, where every node on a level asks the same question, which keeps each tree simple.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Model -->
+    <section id="model" class="block">
+      <div class="wrap">
+        <h2 class="reveal flicker">Model</h2>
+        <p class="lead reveal">Three CatBoost regression models, one for each day ahead. Each predicts how far the day's mean temperature will be from normal.</p>
+
+        <div class="panel reveal">
+          <h3>Model card</h3>
+          <p class="explain">The main facts about the deployed model.</p>
+          <dl class="card" id="card"></dl>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Data split</h3>
+          <p class="explain">A hold-out split by time. Random splits and k-fold cross validation would place almost identical neighbouring days on both sides and overstate accuracy, so every model is tested on later years than it learned from. Three days are removed at each border so no target crosses into the next part.</p>
+          <div class="chart" id="timeline"></div>
+          <div class="split-key" id="split-key"></div>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Model selection</h3>
+          <p class="explain">Three gradient boosting libraries on the same data with default settings. Mean validation RMSE in °C over the three days, lower is better.</p>
+          <div class="chart" id="bakeoff"></div>
+          <p class="takeaway" id="bakeoff-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Feature selection</h3>
+          <p class="explain">Two stages. A <span class="kw">filter method</span> first removed 32 near duplicate features (correlation above 0.95). A <span class="kw">wrapper style</span> step then ranked the rest by permutation importance on the validation set, and the curve below shows the error when only the top N are used. The error stops improving at about 40, so 40 of 158 were kept.</p>
+          <div class="chart" id="selection"></div>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Hyperparameter tuning</h3>
+          <p class="explain" id="tuning-explain"></p>
+          <div class="table-wrap" id="tuning-table"></div>
+          <p class="takeaway">Tuning improved the validation error slightly. For longer lead times the search chose much stronger L2 regularization, probably because day 3 is noisier and easier to overfit.</p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Explainability (SHAP)</h3>
+          <p class="explain">Mean absolute SHAP value of each feature on 2023 to 2025: how much it moves the forecast on average. The list shows the ten most important features from the four Mongolian places.</p>
+          <div class="tabs" role="tablist" id="shap-tabs"></div>
+          <div class="chart" id="shap-groups"></div>
+          <div class="chart" id="shap-features"></div>
+          <p class="takeaway" id="shap-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Leakage checks</h3>
+          <p class="explain">Leakage happens when information about the answer reaches the model during training. Scores then look better than real forecasts will be. These checks prevent it.</p>
+          <ul class="checks">
+            <li><b>Time split with gaps.</b> Training, validation and test never overlap, and three days are removed at every border.</li>
+            <li><b>Past data only.</b> Every feature for a day uses weather up to the end of that day. An automated test replaces all later weather with random numbers and confirms that no feature changes.</li>
+            <li><b>Normals from training years only.</b> The normal temperature curve was fitted on 1980 to 2019, never on validation or test years.</li>
+            <li><b>Locked test set.</b> The test years were scored once. A fingerprint of the models is stored, and evaluating any different model on the test set is refused.</li>
+            <li><b>Same code in training and live use.</b> The website builds features with the same function as training, and a test confirms both produce identical values.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accuracy -->
+    <section id="performance" class="block">
+      <div class="wrap">
+        <h2 class="reveal flicker">Accuracy</h2>
+        <p class="lead reveal">Evaluated once on <span class="kw">2023 to 2025</span>, three years that were not used to build or tune the model.</p>
+
+        <div class="bignums reveal" id="bignums"></div>
+
+        <div class="panel reveal">
+          <h3>Comparison with baselines</h3>
+          <p class="explain">Two simple baselines. Persistence assumes the next days are as far from normal as today. Climatology always predicts the normal temperature. Test RMSE in °C, lower is better.</p>
+          <div class="chart" id="baselines"></div>
+          <div class="key" id="baselines-key"></div>
+          <p class="takeaway" id="baselines-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Error by data split</h3>
+          <p class="explain">RMSE in °C. A small gap between validation and test means the model generalizes to new years rather than memorizing its training years.</p>
+          <div class="table-wrap" id="gap-table"></div>
+          <p class="takeaway">Validation and test errors are close for all three days, so <span class="kw">the model generalizes to unseen years</span>.</p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Confusion matrix (three classes)</h3>
+          <p class="explain">The forecast is a number, so each test day was sorted into colder than normal, near normal or warmer than normal, using thresholds from the training years (terciles). Rows are the actual class, columns the predicted class.</p>
+          <div class="tabs" role="tablist" id="cm-tabs"></div>
+          <div class="cm" id="cm"></div>
+          <div class="table-wrap" id="cm-scores"></div>
+          <p class="takeaway" id="cm-takeaway"></p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Learning curves and early stopping</h3>
+          <p class="explain">Error as trees are added. Training error keeps falling while validation error levels off. Training stops where the validation error is lowest, which limits overfitting.</p>
+          <div class="tabs" role="tablist" id="curve-tabs"></div>
+          <div class="chart" id="curve"></div>
+          <div class="key"><span><i class="k-line k-val"></i>Validation</span><span><i class="k-line k-train"></i>Training</span></div>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Live data check</h3>
+          <p class="explain" id="source-note">Loading</p>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Known limitations</h3>
+          <ul class="checks">
+            <li><b>Reanalysis, not station data.</b> ERA5 is a reconstruction on a grid, so it can differ from a single weather station in the city.</li>
+            <li><b>A few hours of hindsight.</b> ERA5 evening values already include some observations from the next morning. The measured effect is at most 0.17° on the 1 day score. The live forecast does not have this effect.</li>
+            <li><b>Repeated use of validation data.</b> Feature selection, model selection, tuning and early stopping all used 2020 to 2022, so validation scores are slightly optimistic. The test score is the unbiased estimate.</li>
+            <li><b>Cautious in unusual weather.</b> A model trained to minimize squared error tends to predict values closer to normal during rare warm or cold spells.</li>
+            <li><b>Daily mean only.</b> The model forecasts the daily mean. 12 PM and 8 PM add that day's swing from the weather service's forecast and are not separate model forecasts.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-top">
+        <div>
+          <p class="foot-title">Data Mining 2026</p>
+          <p>Maralgua Davaadalai</p>
+        </div>
+        <div class="foot-ai">
+          <p class="foot-title">AI use</p>
+          <p>Claude (Anthropic), an AI assistant, was used during this project for planning, writing and checking code, analysing results, designing this website and drafting its text. The topic, the choice of data, the forecast target and the design direction were decided by the author.</p>
+        </div>
+      </div>
+      <p>Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0), from ERA5 and ERA5-Land by the Copernicus Climate Change Service. Borders from Natural Earth.</p>
+      <p>Code: <a href="https://github.com/giraffee17/dm_web_project">github.com/giraffee17/dm_web_project</a></p>
+    </div>
+  </footer>
+  <div class="tooltip" id="tooltip" role="status"></div>
 </body>
 </html>

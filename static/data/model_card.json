@@ -1,0 +1,131 @@
+{
+ "library": "catboost",
+ "library_version": "1.2.10",
+ "n_features": 40,
+ "trials_per_horizon": 50,
+ "early_stopping_patience": 200,
+ "max_trees": 8000,
+ "seed": 42,
+ "split": {
+  "train": {
+   "start": "1980-01-30",
+   "end": "2019-12-28",
+   "days": 14578
+  },
+  "val": {
+   "start": "2020-01-01",
+   "end": "2022-12-28",
+   "days": 1093
+  },
+  "test": {
+   "start": "2023-01-01",
+   "end": "2025-12-28",
+   "days": 1093
+  }
+ },
+ "gap_days": 3,
+ "final_period": [
+  "1980-01-30",
+  "2022-12-28"
+ ],
+ "test_evaluated": "2026-11-10",
+ "test_runs_same_models": true,
+ "horizons": {
+  "d1": {
+   "params": {
+    "learning_rate": 0.0272,
+    "depth": 6,
+    "l2_leaf_reg": 1.1241,
+    "random_strength": 6.5863,
+    "subsample": 0.6294
+   },
+   "trees_train_only": 7989,
+   "trees_final": 8588,
+   "val_rmse_default": 1.396,
+   "val_rmse_tuned": 1.37,
+   "best_trial": 9,
+   "trials": {
+    "PRUNED": 39,
+    "COMPLETE": 11
+   },
+   "test": {
+    "model": {
+     "rmse": 1.44,
+     "mae": 1.092
+    },
+    "persistence": {
+     "rmse": 3.06,
+     "mae": 2.284
+    },
+    "climatology": {
+     "rmse": 4.383,
+     "mae": 3.421
+    }
+   }
+  },
+  "d2": {
+   "params": {
+    "learning_rate": 0.0625,
+    "depth": 6,
+    "l2_leaf_reg": 13.0329,
+    "random_strength": 1.3523,
+    "subsample": 0.8245
+   },
+   "trees_train_only": 1220,
+   "trees_final": 1311,
+   "val_rmse_default": 2.549,
+   "val_rmse_tuned": 2.528,
+   "best_trial": 31,
+   "trials": {
+    "PRUNED": 30,
+    "COMPLETE": 20
+   },
+   "test": {
+    "model": {
+     "rmse": 2.7,
+     "mae": 2.068
+    },
+    "persistence": {
+     "rmse": 4.424,
+     "mae": 3.354
+    },
+    "climatology": {
+     "rmse": 4.381,
+     "mae": 3.417
+    }
+   }
+  },
+  "d3": {
+   "params": {
+    "learning_rate": 0.0601,
+    "depth": 7,
+    "l2_leaf_reg": 24.4974,
+    "random_strength": 1.9169,
+    "subsample": 0.5457
+   },
+   "trees_train_only": 887,
+   "trees_final": 954,
+   "val_rmse_default": 3.299,
+   "val_rmse_tuned": 3.285,
+   "best_trial": 34,
+   "trials": {
+    "PRUNED": 28,
+    "COMPLETE": 22
+   },
+   "test": {
+    "model": {
+     "rmse": 3.387,
+     "mae": 2.602
+    },
+    "persistence": {
+     "rmse": 4.99,
+     "mae": 3.836
+    },
+    "climatology": {
+     "rmse": 4.379,
+     "mae": 3.414
+    }
+   }
+  }
+ }
+}

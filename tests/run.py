@@ -23,6 +23,9 @@ What is tested
      same day, today's forecast hours are ignored, bad data is refused, the
      daily cache and the stale fallback work, the API answers, and the
      source check runs.
+ 10. Website (Phase 5): every file the page loads exists, every chart data
+     file is valid JSON without NaN values, and the map borders are drawn
+     the way D3 expects (clockwise outer rings).
 """
 
 import sys
@@ -359,6 +362,45 @@ def test_live(ds, hourly):
         shutil.rmtree(tmp)
 
 
+def test_website():
+    print("10. Website")
+    import json
+    import re
+
+    static = config.STATIC_DIR
+    html = (static / "index.html").read_text(encoding="utf-8")
+    local = [p.split("?")[0] for p in re.findall(r'(?:src|href)="([^"#]+)"', html) if not p.startswith("http")]
+    missing = [p for p in local if not (static / p).exists()]
+    check("every local file the page loads exists", not missing, f"{len(local)} files" if not missing else f"missing {missing}")
+
+    js = " ".join(p.read_text(encoding="utf-8") for p in (static / "js").glob("*.js"))
+    data_files = sorted(set(re.findall(r'"(data/[a-z_]+\.json)"', js)))
+    bad = []
+    for f in data_files:
+        try:
+            json.loads((static / f).read_text(encoding="utf-8"),
+                       parse_constant=lambda c: (_ for _ in ()).throw(ValueError(c)))
+        except Exception as e:                                   # missing file, bad JSON or NaN
+            if f != "data/source_check.json":                     # created by src.check_sources (needs internet)
+                bad.append(f"{f}: {e.__class__.__name__}")
+    check("every chart data file exists and is valid JSON without NaN", not bad, f"{len(data_files)} files" if not bad else str(bad))
+
+    def ring_area(ring):                                          # > 0 = counter-clockwise (lon/lat)
+        return sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(ring, ring[1:]))
+    basemap = json.loads((static / "data" / "basemap.json").read_text())
+    rings = []
+    for f in basemap["features"]:
+        g = f["geometry"]
+        polys = [g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]
+        rings += [p[0] for p in polys]
+    check("map outer rings are clockwise (what D3 expects)", all(ring_area(r) < 0 for r in rings), f"{len(rings)} rings")
+
+    snap = json.loads((static / "data" / "coldsnap.json").read_text())
+    order = sorted(["khovd", "uliastai", "moron", "ulaanbaatar"], key=lambda s: snap["arrival"][s])
+    check("replay: the cold reaches the western sites before Ulaanbaatar",
+          order == ["khovd", "uliastai", "moron", "ulaanbaatar"], " -> ".join(order))
+
+
 if __name__ == "__main__":
     print("Loading data...")
     hourly = {site: load_hourly(site) for site in config.SITES}
@@ -377,6 +419,8 @@ if __name__ == "__main__":
         test_live(ds, hourly)
     else:
         print("8. Models: skipped (run Phase 3 first)")
+
+    test_website()
 
     passed = sum(RESULTS)
     print(f"\n{passed} / {len(RESULTS)} checks passed")

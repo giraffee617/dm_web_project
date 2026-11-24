@@ -12,7 +12,7 @@ then open http://localhost:7860 in a browser.
 
 import json
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
 from src import config
@@ -38,6 +38,17 @@ def meta():
     if config.SOURCE_CHECK_PATH.exists():
         info["source_check"] = json.loads(config.SOURCE_CHECK_PATH.read_text())["summary"]
     return info
+
+
+@app.middleware("http")
+async def always_fresh_site_files(request: Request, call_next):
+    """Tell browsers to check for a newer version of every page, style and
+    script file on each visit (an unchanged file is answered with a quick
+    '304 Not Modified'), so an old cached design can never mix with new code."""
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 # The website itself. Mounted last, so /api/... routes take priority.

@@ -101,10 +101,10 @@ def run():
         "ub_temperature_bias": ub_t["bias"], "ub_temperature_mae": ub_t["mae"],
         "forecast_change_mae": {h: v["mae"] for h, v in forecast_change.items()},
         "note": (f"On {len(common)} recent days covered by both sources, the live data (forecast API) "
-                 f"and the training data (ERA5 archive) differ by {ub_t['mae']:.1f} degC on average for "
+                 f"and the training data (ERA5 archive) differ by {ub_t['mae']:.1f} \u00b0C on average for "
                  f"Ulaanbaatar's daily temperature. Feeding the model live data instead of archive data "
-                 f"changes the day+1 forecast by {forecast_change['d1']['mae']:.2f} degC on average, "
-                 f"compared with the model's typical error of {forecast_change['d1']['model_test_rmse']:.1f} degC."),
+                 f"changes the day+1 forecast by {forecast_change['d1']['mae']:.2f} \u00b0C on average, "
+                 f"compared with the model's typical error of {forecast_change['d1']['model_test_rmse']:.1f} \u00b0C."),
         "checked_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
     }
     out = {"summary": summary, "per_site": per_site, "forecast_change": forecast_change,

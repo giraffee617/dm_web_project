@@ -1,0 +1,42 @@
+[
+ {
+  "id": "ulaanbaatar",
+  "name": "Ulaanbaatar",
+  "lat": 47.92,
+  "lon": 106.92,
+  "role": "main",
+  "elevation_m": 1302.0
+ },
+ {
+  "id": "uliastai",
+  "name": "Uliastai",
+  "lat": 47.74,
+  "lon": 96.84,
+  "role": "upwind",
+  "elevation_m": 1754.0
+ },
+ {
+  "id": "khovd",
+  "name": "Khovd",
+  "lat": 48.01,
+  "lon": 91.64,
+  "role": "upwind",
+  "elevation_m": 1393.0
+ },
+ {
+  "id": "moron",
+  "name": "M\u00f6r\u00f6n",
+  "lat": 49.64,
+  "lon": 100.16,
+  "role": "upwind",
+  "elevation_m": 1285.0
+ },
+ {
+  "id": "irkutsk",
+  "name": "Irkutsk",
+  "lat": 52.29,
+  "lon": 104.29,
+  "role": "upwind",
+  "elevation_m": 434.0
+ }
+]
