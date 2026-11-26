@@ -44,7 +44,7 @@
     const first = decades[0];
     const last = decades[decades.length - 1];
     UB.rich(document.getElementById("ridgeline-takeaway"),
-      `The median winter day: ${UB.num(first.median)}° in the ${first.decade}s, ${UB.num(last.median)}° in the ${last.decade}s. [[Winters have barely changed]].`);
+      `The middle (median) winter day: ${UB.num(first.median)}° in the ${first.decade}s, ${UB.num(last.median)}° in the ${last.decade}s. [[Winters have barely changed]].`);
 
     UB.responsive(el, (width) => {
       const m = { top: 16, right: width < 640 ? 46 : 64, bottom: 40, left: 44 };
@@ -201,7 +201,7 @@
     const p = c.welch_p < 0.001 ? "p < 0.001" : `p = ${c.welch_p}`;
     UB.rich(document.getElementById("everyday-takeaway"),
       `Warmer than normal days: ${then}% in the 1960s, [[${now}%]] in ${c.recent[0]} to ${c.recent[1]}. ` +
-      `A significant change ([[Welch's t-test, ${p}]]) with a large effect ([[Cohen's d = ${c.cohens_d.toFixed(1)}]]).`);
+      `This change is too big to be chance ([[Welch's t-test, ${p}]]) and it is large ([[Cohen's d = ${c.cohens_d.toFixed(1)}]]).`);
 
     UB.responsive(el, (width) => {
       const m = { top: 22, right: 0, bottom: 0, left: width < 640 ? 34 : 44 };

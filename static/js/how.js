@@ -31,7 +31,7 @@
       });
       const up = Math.round((g["Upwind sites"] / total) * 100);
       UB.rich(document.getElementById("shap-takeaway"), day === 0
-        ? `1 day ahead, Ulaanbaatar's own temperature is the strongest single feature, and upwind places together give [[${up}% of the importance]].`
+        ? `1 day ahead, Ulaanbaatar's own temperature is the strongest single feature, but upwind places together give [[${up}% of the importance]].`
         : `${DAYS[day][0]} days ahead, upwind places give [[${up}% of the importance]], more than Ulaanbaatar itself.`);
     });
 

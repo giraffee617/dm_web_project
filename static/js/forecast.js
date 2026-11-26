@@ -101,11 +101,11 @@
       rows.appendChild(row);
     });
 
-    meta.textContent = `Model: based on weather up to ${longDate(f.data_through)}. `
-      + "Actual weather: Open-Meteo (national weather services); days still to come are their forecast.";
+    meta.textContent = `Model: uses the weather up to ${longDate(f.data_through)}. `
+      + "Actual weather: from Open-Meteo (national weather services). For days still to come, it is their forecast.";
     document.getElementById("swing-note").textContent = usedTypical
-      ? "Model 12 PM and 8 PM: the model's day average plus that hour's usual difference on this date."
-      : "Model 12 PM and 8 PM: the model's day average plus that hour's difference from the weather service.";
+      ? "The model predicts the day average. Its 12 PM and 8 PM values add the usual difference for that hour on this date."
+      : "The model predicts the day average. Its 12 PM and 8 PM values add that hour's difference from the weather service.";
     if (f.stale) document.getElementById("forecast-note").textContent = "The model forecast could not be updated, so this is the most recent saved forecast.";
   }
 

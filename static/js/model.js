@@ -8,19 +8,19 @@
     const el = document.getElementById("card");
     const s = m.split;
     const rows = [
-      ["Task", "Forecast Ulaanbaatar's daily average temperature 1, 2 and 3 days ahead (regression)"],
-      ["Target", "Temperature anomaly in °C: the difference from the normal for that date. Forecast = anomaly + normal"],
-      ["Strategy", "Direct: one separate model for each day ahead"],
+      ["Task", "Predict Ulaanbaatar's daily average temperature 1, 2 and 3 days ahead (regression: the answer is a number)"],
+      ["Target", "The anomaly: how many °C warmer or colder than normal for that date. Forecast = anomaly + normal"],
+      ["Strategy", "Direct: a separate model for each day ahead"],
       ["Algorithm", `Gradient boosted decision trees, ${m.library === "catboost" ? "CatBoost" : m.library} ${m.library_version}`],
-      ["Inputs", `${m.n_features} features chosen from 158, built from Ulaanbaatar and four upwind places`],
-      ["Training", `${fmtDate(s.train.start)} to ${fmtDate(s.train.end)}, ${n(s.train.days)} days`],
-      ["Validation", `${fmtDate(s.val.start)} to ${fmtDate(s.val.end)}, ${n(s.val.days)} days`],
-      ["Test", `${fmtDate(s.test.start)} to ${fmtDate(s.test.end)}, ${n(s.test.days)} days, used once`],
-      ["Deployed model", `Retrained on ${fmtDate(m.final_period[0])} to ${fmtDate(m.final_period[1])} with the tuned settings`],
-      ["Metric", "RMSE in °C (average miss, big misses count more), plus MAE"],
-      ["Early stopping", `Stop when validation error has not improved for ${m.early_stopping_patience} trees (at most ${n(m.max_trees)})`],
-      ["Tuning", `Optuna, ${m.trials_per_horizon} trials for each day ahead, weak trials stopped early`],
-      ["Reproducible", `Fixed random seed (${m.seed}), pinned package versions, fingerprints of every data file`],
+      ["Inputs", `${m.n_features} features (clues) chosen from 158, from Ulaanbaatar and four upwind places`],
+      ["Training", `${fmtDate(s.train.start)} to ${fmtDate(s.train.end)}, ${n(s.train.days)} days: the model learns from these`],
+      ["Validation", `${fmtDate(s.val.start)} to ${fmtDate(s.val.end)}, ${n(s.val.days)} days: used to make choices`],
+      ["Test", `${fmtDate(s.test.start)} to ${fmtDate(s.test.end)}, ${n(s.test.days)} days: the final exam, used once`],
+      ["Deployed model", `Retrained on ${fmtDate(m.final_period[0])} to ${fmtDate(m.final_period[1])} (training + validation years) with the tuned settings`],
+      ["Metric", "RMSE in °C: the typical miss, where big misses count more. Also MAE: the plain average miss"],
+      ["Early stopping", `Stop adding trees when the validation error has not improved for ${m.early_stopping_patience} trees (at most ${n(m.max_trees)})`],
+      ["Tuning", `Optuna tried ${m.trials_per_horizon} settings for each day ahead and stopped weak ones early`],
+      ["Reproducible", `Fixed random seed (${m.seed}), fixed package versions and a fingerprint of every data file, so results can be repeated exactly`],
     ];
     rows.forEach(([k, v]) => {
       const dt = document.createElement("dt");
@@ -70,19 +70,19 @@
 
   function tuning(m) {
     document.getElementById("tuning-explain").textContent =
-      `Optuna tried ${m.trials_per_horizon} settings per day ahead, starting from CatBoost's defaults, so it could never get worse. Weak trials were stopped early.`;
+      `Hyperparameters are the model's settings, like how fast it learns. Optuna tried ${m.trials_per_horizon} combinations for each day ahead, starting from CatBoost's defaults, so the result could never get worse. Weak tries were stopped early.`;
     const table = document.createElement("table");
     const head = table.createTHead().insertRow();
     ["", ...DAYS].forEach((t) => { const th = document.createElement("th"); th.textContent = t; head.appendChild(th); });
     const body = table.createTBody();
     const H = ["d1", "d2", "d3"].map((k) => m.horizons[k]);
     const rows = [
-      ["Learning rate (step size)", (h) => h.params.learning_rate.toFixed(3)],
-      ["Tree depth", (h) => h.params.depth],
+      ["Learning rate (how big each step is)", (h) => h.params.learning_rate.toFixed(3)],
+      ["Tree depth (levels of questions)", (h) => h.params.depth],
       ["L2 (brake on extreme values)", (h) => h.params.l2_leaf_reg.toFixed(1)],
-      ["Random strength", (h) => h.params.random_strength.toFixed(1)],
+      ["Random strength (randomness in choosing questions)", (h) => h.params.random_strength.toFixed(1)],
       ["Share of days per tree", (h) => h.params.subsample.toFixed(2)],
-      ["Trees (early stopping)", (h) => n(h.trees_train_only)],
+      ["Trees (until early stopping)", (h) => n(h.trees_train_only)],
       ["Validation error, defaults", (h) => `${h.val_rmse_default.toFixed(3)}°`],
       ["Validation error, tuned", (h) => `${h.val_rmse_tuned.toFixed(3)}°`, true],
     ];
